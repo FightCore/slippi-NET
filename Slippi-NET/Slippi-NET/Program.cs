@@ -19,7 +19,7 @@ namespace SlippiNET
             //var files = Directory.GetFiles(@"C:\Users\bartd\Documents\Slippi", "*.slp");
             var files = new[]
             {
-                @"C:\Users\bartd\Documents\Slippi\Game_20210420T204501.slp"
+                @"C:\Users\bartd\Documents\Slippi\Game_20210419T232325.slp"
             };
             foreach (var file in files)
             {

@@ -66,10 +66,10 @@ namespace SlippiNET.Utils
                 case SlippiCommand.GAME_START:
                     for (var i = 0; i < 4; i++)
                     {
-                        var nametagLength = 0x10;
-                        var nametagOffset = i * nametagLength;
-                        var nametagStart = 0x161 + nametagOffset;
-                        var nameTag = ReadString(payload, nametagStart, nametagLength);
+                        const int nameTagLength = 0x10;
+                        var nameTagOffset = i * nameTagLength;
+                        var nameTagStart = 0x161 + nameTagOffset;
+                        var nameTag = ReadString(payload, nameTagStart, nameTagLength);
                         if (!string.IsNullOrWhiteSpace(nameTag))
                         {
                             Console.WriteLine($"Display name {i}: {ToHalfwidth(nameTag)}");
@@ -117,7 +117,7 @@ namespace SlippiNET.Utils
                         $"{ReadUInt8(payload, 0x1)}.{ReadUInt8(payload, 0x2)}.{ReadUInt8(payload, 0x3)}",
                         ReadBool(payload, 0xd),
                         ReadBool(payload, 0x1a1),
-                        ReadUShort(payload, 0x13),
+                        (MeleeStage)ReadUShort(payload, 0x13),
                         players,
                         payload[0x1a3],
                         (MeleeMajorScene)payload[0x1a4]
@@ -172,9 +172,7 @@ namespace SlippiNET.Utils
                     return (char)0x0020;
                 }
 
-                /**
-                 * Exceptions found in Melee/Japanese keyboards
-                 */
+                // Exceptions found in Melee/Japanese keyboards
                 // single quote: '
                 if (charCode == 0x2019)
                 {
@@ -188,7 +186,7 @@ namespace SlippiNET.Utils
                 }
 
                 return charCode;
-            }).ToArray());
+            }).ToArray()).Trim('\0');
         }
 
         private static string ReadString(byte[] payload, int startIndex, int length)
