@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace SlippiReader.Models
+namespace SlippiNET.Models
 {
     public record SlippiFileType(long RawDataPosition, long RawDataLength, long MetadataPosition, long MetadataLength, Dictionary<int, int> messageSizes);
 }

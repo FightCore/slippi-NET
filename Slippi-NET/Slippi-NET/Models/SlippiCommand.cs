@@ -1,4 +1,4 @@
-﻿namespace SlippiReader.Models
+﻿namespace SlippiNET.Models
 {
     public enum SlippiCommand
     {

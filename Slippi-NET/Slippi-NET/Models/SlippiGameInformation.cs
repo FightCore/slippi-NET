@@ -1,6 +1,6 @@
-﻿using SlippiReader.Models.Melee;
+﻿using SlippiNET.Models.Melee;
 
-namespace SlippiReader.Models
+namespace SlippiNET.Models
 {
     public record SlippiGameInformation(string SlpVersion, bool IsTeams, bool IsPAL, ushort StageId, SlippiPlayer[] Players, byte Scene, MeleeMajorScene GameMode)
     {

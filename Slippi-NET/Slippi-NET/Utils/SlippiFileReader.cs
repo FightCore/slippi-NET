@@ -1,13 +1,13 @@
-﻿using SlippiReader.Models;
-using SlippiReader.Models.Melee;
-using System;
+﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SlippiNET.Models;
+using SlippiNET.Models.Melee;
 
-namespace SlippiReader.Utils
+namespace SlippiNET.Utils
 {
     public class SlippiFileReader
     {

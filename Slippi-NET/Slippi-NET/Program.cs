@@ -1,9 +1,9 @@
-﻿using SlippiReader.Utils;
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
+using SlippiNET.Utils;
 
-namespace SlippiReader
+namespace SlippiNET
 {
     class Program
     {
@@ -26,7 +26,7 @@ namespace SlippiReader
                 try
                 {
                     var binaryFile = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    var fileType = SlippiTypeFileReader.GetFileType(binaryFile);
+                    var fileType = new SlippiTypeFileReader().GetFileType(binaryFile);
                     new SlippiFileReader().Read(binaryFile, fileType);
                 }
                 catch
@@ -43,7 +43,7 @@ namespace SlippiReader
         {
             Console.WriteLine(e.FullPath);
             var binaryFile = new FileStream(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            var fileType = SlippiTypeFileReader.GetFileType(binaryFile);
+            var fileType = new SlippiTypeFileReader().GetFileType(binaryFile);
             new SlippiFileReader().Read(binaryFile, fileType);
         }
     }

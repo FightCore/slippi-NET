@@ -1,13 +1,13 @@
-﻿using SlippiReader.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using SlippiNET.Models;
 
-namespace SlippiReader.Utils
+namespace SlippiNET.Utils
 {
-    public static class SlippiTypeFileReader
+    public class SlippiTypeFileReader
     {
-        public static SlippiFileType GetFileType(Stream stream)
+        public SlippiFileType GetFileType(Stream stream)
         {
             var rawDataPosition = GetRawDataPosition(stream);
             var rawDataLength = GetRawDataLength(stream, rawDataPosition);
@@ -28,7 +28,7 @@ namespace SlippiReader.Utils
             {
                 return 0;
             }
-            else if (buffer[0] != '{')
+            if (buffer[0] != '{')
             {
                 throw new Exception();
             }

@@ -1,4 +1,4 @@
-﻿namespace SlippiReader.Models.Melee
+﻿namespace SlippiNET.Models.Melee
 {
     public enum MeleeMajorScene : byte
     {
