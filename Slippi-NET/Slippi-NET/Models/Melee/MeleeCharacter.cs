@@ -1,0 +1,40 @@
+﻿namespace SlippiReader.Models.Melee
+{
+    public enum MeleeCharacter : sbyte
+    {
+        CaptainFalcon = 0x00,
+        DonkeyKong = 0x01,
+        Fox = 0x02,
+        MrGameAndWatch = 0x03,
+        Kirby = 0x04,
+        Bowser = 0x05,
+        Link = 0x06,
+        Luigi = 0x07,
+        Mario = 0x08,
+        Marth = 0x09,
+        Mewtwo = 0x0A,
+        Ness = 0x0B,
+        Peach = 0x0C,
+        Pikachu = 0x0D,
+        IceClimbers = 0x0E,
+        Jigglypuff = 0x0F,
+        Samus = 0x10,
+        Yoshi = 0x11,
+        Zelda = 0x12,
+        Sheik = 0x13,
+        Falco = 0x14,
+        YoungLink = 0x15,
+        DrMario = 0x16,
+        Roy = 0x17,
+        Pichu = 0x18,
+        Ganondorf = 0x19,
+        MasterHand = 0x1A,
+        WireframeMale = 0x1B,
+        WireframeFemale = 0x1C,
+        GigaBowser = 0x1D,
+        CrazyHand = 0x1E,
+        SandBag = 0x1F,
+        Popo = 0x20,
+        None = 0x21
+    }
+}
