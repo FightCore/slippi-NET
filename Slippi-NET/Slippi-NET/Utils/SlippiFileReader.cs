@@ -72,27 +72,27 @@ namespace SlippiNET.Utils
                         var nameTag = ReadString(payload, nameTagStart, nameTagLength);
                         if (!string.IsNullOrWhiteSpace(nameTag))
                         {
-                            Console.WriteLine($"Display name {i}: {ToHalfwidth(nameTag)}");
+                            Console.WriteLine($"Display name {i}: {ConvertToHalfWidth(nameTag)}");
                         }
 
                         // Display name
-                        var displayNameLength = 0x1f;
+                        const int displayNameLength = 0x1f;
                         var displayNameOffset = i * displayNameLength;
                         var displayNameStart = 0x1a5 + displayNameOffset;
                         var displayName = ReadString(payload, displayNameStart, displayNameLength);
                         if (!string.IsNullOrWhiteSpace(displayName))
                         {
-                            Console.WriteLine($"Display name {i}: {ToHalfwidth(displayName)}");
+                            Console.WriteLine($"Display name {i}: {ConvertToHalfWidth(displayName)}");
                         }
 
                         // Connect code
-                        var connectCodeLength = 0xa;
+                        const int connectCodeLength = 0xa;
                         var connectCodeOffset = i * connectCodeLength;
                         var connectCodeStart = 0x221 + connectCodeOffset;
                         var connectCode = ReadString(payload, connectCodeStart, connectCodeLength);
                         if (!string.IsNullOrWhiteSpace(connectCode))
                         {
-                            Console.WriteLine($"Connect code {i}: {ToHalfwidth(connectCode)}");
+                            Console.WriteLine($"Connect code {i}: {ConvertToHalfWidth(connectCode)}");
                         }
 
                         var offset = i * 0x24;
@@ -101,14 +101,18 @@ namespace SlippiNET.Utils
                             (MeleeCharacter)ReadUInt8(payload, 0x65 + offset),
                             ReadUInt8(payload, 0x68 + offset),
                             ReadUInt8(payload, 0x67 + offset),
-                            ReadUInt8(payload, 0x66 + offset),
+                            (MeleePlayerType)ReadUInt8(payload, 0x66 + offset),
                             ReadUInt8(payload, 0x6e + offset),
                             "Not Implemented",
                             nameTag,
                             displayName,
                             connectCode
                         );
-                        if (players[i].Type != 3)
+
+                        // If the player slot is empty, there is no need to gather PRE-POST FRAME
+                        // or any other commands for it. Only non-empty player types are added
+                        // to the list.
+                        if (players[i].Type != MeleePlayerType.Empty)
                         {
                             _playerIndex.Add(i);
                         }
@@ -125,8 +129,8 @@ namespace SlippiNET.Utils
 
                     break;
                 case SlippiCommand.PRE_FRAME_UPDATE:
-                    var playerIndexlo = payload[0x5];
-                    if (!_playerIndex.Contains(playerIndexlo))
+                    var preFramePlayerIndex = payload[0x5];
+                    if (!_playerIndex.Contains(preFramePlayerIndex))
                     {
                         break;
                     }
@@ -134,8 +138,8 @@ namespace SlippiNET.Utils
                     Console.WriteLine(percentage);
                     break;
                 case SlippiCommand.POST_FRAME_UPDATE:
-                    var playerIndex = payload[0x5];
-                    if (!_playerIndex.Contains(playerIndex))
+                    var postFramePlayerIndex = payload[0x5];
+                    if (!_playerIndex.Contains(postFramePlayerIndex))
                     {
                         break;
                     }
@@ -152,12 +156,22 @@ namespace SlippiNET.Utils
                     break;
                 case SlippiCommand.FRAME_BOOKEND:
                     break;
-                default:
+                case SlippiCommand.MESSAGE_SIZES:
                     break;
             }
         }
 
-        private static string ToHalfwidth(string value)
+        /// <summary>
+        /// Converts the string into a HalfWidth string as what Melee uses.
+        /// </summary>
+        /// <param name="value">Value to convert.</param>
+        /// <returns>The converted value.</returns>
+        /// <remarks>
+        /// Method implementation taken from Slippi-Js
+        /// https://github.com/project-slippi/slippi-js/blob/11990cf4e92b79bc0e369ca94fbbe0ee747c1423/src/utils/fullwidth.ts#L3
+        /// TODO: Comment what this does/might do.
+        /// </remarks>
+        private static string ConvertToHalfWidth(string value)
         {
             return new string(value.Select(charCode =>
             {
@@ -199,7 +213,7 @@ namespace SlippiNET.Utils
                 return null;
             }
 
-            return ToHalfwidth(resultString);
+            return ConvertToHalfWidth(resultString);
         }
 
         private static sbyte ReadUInt8(byte[] payload, int startIndex)
