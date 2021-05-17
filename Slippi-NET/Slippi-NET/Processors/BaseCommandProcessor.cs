@@ -15,7 +15,6 @@ namespace SlippiNET.Processors
     public abstract class BaseCommandProcessor<TCommand> : IBaseCommandProcessor<TCommand>
         where TCommand : BaseSlippiCommand
     {
-
         public abstract TCommand Process(byte[] payload);
 
         /// <summary>
@@ -91,25 +90,25 @@ namespace SlippiNET.Processors
         protected static float ReadFloat(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 4;
-            return BinaryPrimitives.ReadSingleBigEndian(payload[startIndex..endIndex]);
+            return BinaryPrimitives.ReadSingleBigEndian(payload.AsSpan(startIndex..endIndex));
         }
 
         protected static ushort ReadUShort(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 2;
-            return BinaryPrimitives.ReadUInt16BigEndian(payload[startIndex..endIndex]);
+            return BinaryPrimitives.ReadUInt16BigEndian(payload.AsSpan(startIndex..endIndex));
         }
 
         protected static int ReadInt(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 4;
-            return BinaryPrimitives.ReadInt32BigEndian(payload[startIndex..endIndex]);
+            return BinaryPrimitives.ReadInt32BigEndian(payload.AsSpan(startIndex..endIndex));
         }
 
         protected static uint ReadUInt(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 4;
-            return BinaryPrimitives.ReadUInt32BigEndian(payload[startIndex..endIndex]);
+            return BinaryPrimitives.ReadUInt32BigEndian(payload.AsSpan(startIndex..endIndex));
         }
     }
 }

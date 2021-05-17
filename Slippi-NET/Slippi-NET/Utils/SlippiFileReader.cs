@@ -75,6 +75,7 @@ namespace SlippiNET.Utils
                     return _processors.SlippiPostFrameUpdateProcessor.Process(payload);
                 case SlippiCommand.GAME_END:
                     _gameHasEnded = true;
+                    break;
                     return _processors.SlippiGameEndProcessor.Process(payload);
                 case SlippiCommand.ITEM_UPDATE:
                     break;
