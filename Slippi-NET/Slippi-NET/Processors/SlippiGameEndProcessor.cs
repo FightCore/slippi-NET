@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SlippiNET.Models.Commands;
+﻿using SlippiNET.Models.Commands;
+using SlippiNET.Models.Melee;
 
 namespace SlippiNET.Processors
 {
@@ -11,7 +7,12 @@ namespace SlippiNET.Processors
     {
         public override SlippiGameEndCommand Process(byte[] payload)
         {
-            return new SlippiGameEndCommand(ReadUInt8(payload, 0x1), ReadInt8(payload, 0x2));
+            if (payload.Length == 3)
+            {
+                return new SlippiGameEndCommand((MeleeGameEndMethods)ReadUInt8(payload, 0x1), -1);
+            }
+
+            return new SlippiGameEndCommand((MeleeGameEndMethods)ReadUInt8(payload, 0x1), ReadInt8(payload, 0x2));
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace SlippiNET.Models.Commands
+﻿using SlippiNET.Models.Melee;
+
+namespace SlippiNET.Models.Commands
 {
-    public record SlippiGameEndCommand(byte Frame, sbyte LatestFinalizedFrame) : BaseSlippiCommand(SlippiCommand.GAME_END);
+    public record SlippiGameEndCommand(MeleeGameEndMethods GameEndMethod, sbyte LRASInitiator) : BaseSlippiCommand(SlippiCommand.GAME_END);
 }

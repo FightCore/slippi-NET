@@ -57,7 +57,12 @@ namespace SlippiNET.Utils
                 // All messages include the commandByte as the first byte.
                 stream.Position = readPosition;
                 stream.Read(messageBuffer);
-                yield return ParseMessage(Enum.Parse<SlippiCommand>(commandByte.ToString()), messageBuffer);
+                var message = ParseMessage(Enum.Parse<SlippiCommand>(commandByte.ToString()), messageBuffer);
+                if (message != null)
+                {
+                    yield return message;
+                }
+
                 readPosition += messageBuffer.Length;
             }
         }
@@ -75,7 +80,6 @@ namespace SlippiNET.Utils
                     return _processors.SlippiPostFrameUpdateProcessor.Process(payload);
                 case SlippiCommand.GAME_END:
                     _gameHasEnded = true;
-                    break;
                     return _processors.SlippiGameEndProcessor.Process(payload);
                 case SlippiCommand.ITEM_UPDATE:
                     break;
