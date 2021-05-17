@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using SlippiNET.Models;
+using SlippiNET.Models.Commands;
 using SlippiNET.Models.Melee;
 
 namespace SlippiNET.Utils
@@ -15,7 +16,8 @@ namespace SlippiNET.Utils
         // Contains the indexes of the active players.
         private readonly HashSet<int> _playerIndex = new HashSet<int>();
         private bool _gameHasEnded = false;
-        public void Read(Stream stream, SlippiFileType fileType)
+
+        public IEnumerable<BaseSlippiCommand> Read(Stream stream, SlippiFileType fileType)
         {
             var readPosition = fileType.RawDataPosition;
             var stopReadingAt = fileType.RawDataPosition + fileType.RawDataLength;
@@ -28,7 +30,7 @@ namespace SlippiNET.Utils
                 {
                     continue;
                 }
-                
+
                 // Set the stream position to the new read position.
                 stream.Position = readPosition;
                 // Read the bytes into the commandByteBuffer.
@@ -39,26 +41,26 @@ namespace SlippiNET.Utils
 
                 // If the command byte is an unknown message, return and stop reading.
                 // Most likely something is wrong
-                // TODO Replace with exception.
+                // TODO Replace with custom exception.
                 if (!fileType.messageSizes.ContainsKey(commandByte))
                 {
-                    return;
+                    throw new Exception();
                 }
 
                 // Create a message buffer the size given by the command byte type.
-                // TODO Why +1?
+                // +1 is done because we select the command byte as well.
                 var messageBuffer = new byte[fileType.messageSizes[commandByte] + 1];
 
                 // Set the stream position back to the read position
                 // All messages include the commandByte as the first byte.
                 stream.Position = readPosition;
                 stream.Read(messageBuffer);
-                ParseMessage(Enum.Parse<SlippiCommand>(commandByte.ToString()), messageBuffer);
+                yield return ParseMessage(Enum.Parse<SlippiCommand>(commandByte.ToString()), messageBuffer);
                 readPosition += messageBuffer.Length;
             }
         }
 
-        private void ParseMessage(SlippiCommand command, byte[] payload)
+        private BaseSlippiCommand ParseMessage(SlippiCommand command, byte[] payload)
         {
             var players = new SlippiPlayer[4];
             switch (command)
@@ -70,30 +72,18 @@ namespace SlippiNET.Utils
                         var nameTagOffset = i * nameTagLength;
                         var nameTagStart = 0x161 + nameTagOffset;
                         var nameTag = ReadString(payload, nameTagStart, nameTagLength);
-                        if (!string.IsNullOrWhiteSpace(nameTag))
-                        {
-                            Console.WriteLine($"Display name {i}: {ConvertToHalfWidth(nameTag)}");
-                        }
 
                         // Display name
                         const int displayNameLength = 0x1f;
                         var displayNameOffset = i * displayNameLength;
                         var displayNameStart = 0x1a5 + displayNameOffset;
                         var displayName = ReadString(payload, displayNameStart, displayNameLength);
-                        if (!string.IsNullOrWhiteSpace(displayName))
-                        {
-                            Console.WriteLine($"Display name {i}: {ConvertToHalfWidth(displayName)}");
-                        }
 
                         // Connect code
                         const int connectCodeLength = 0xa;
                         var connectCodeOffset = i * connectCodeLength;
                         var connectCodeStart = 0x221 + connectCodeOffset;
                         var connectCode = ReadString(payload, connectCodeStart, connectCodeLength);
-                        if (!string.IsNullOrWhiteSpace(connectCode))
-                        {
-                            Console.WriteLine($"Connect code {i}: {ConvertToHalfWidth(connectCode)}");
-                        }
 
                         var offset = i * 0x24;
                         players[i] = new SlippiPlayer(
@@ -117,7 +107,7 @@ namespace SlippiNET.Utils
                             _playerIndex.Add(i);
                         }
                     }
-                    var gameInformation = new SlippiGameInformation(
+                    return new SlippiGameInformation(
                         $"{ReadUInt8(payload, 0x1)}.{ReadUInt8(payload, 0x2)}.{ReadUInt8(payload, 0x3)}",
                         ReadBool(payload, 0xd),
                         ReadBool(payload, 0x1a1),
@@ -126,39 +116,71 @@ namespace SlippiNET.Utils
                         payload[0x1a3],
                         (MeleeMajorScene)payload[0x1a4]
                     );
-
-                    break;
                 case SlippiCommand.PRE_FRAME_UPDATE:
-                    var preFramePlayerIndex = payload[0x5];
-                    if (!_playerIndex.Contains(preFramePlayerIndex))
-                    {
-                        break;
-                    }
-                    var percentage = ReadFloat(payload, 0x3C);
-                    Console.WriteLine(percentage);
-                    break;
+                    return new SlippiPreFrameUpdate(
+                        ReadInt(payload, 0x1),
+                        ReadUInt8(payload, 0x5),
+                        ReadBool(payload, 0x6),
+                        ReadUInt(payload, 0x7),
+                        ReadUShort(payload, 0xb),
+                        ReadFloat(payload, 0xd),
+                        ReadFloat(payload, 0x11),
+                        ReadFloat(payload, 0x15),
+                        ReadFloat(payload, 0x19),
+                        ReadFloat(payload, 0x1d),
+                        ReadFloat(payload, 0x21),
+                        ReadFloat(payload, 0x25),
+                        ReadFloat(payload, 0x29),
+                        ReadUInt(payload, 0x2d),
+                        ReadUShort(payload, 0x31),
+                        ReadFloat(payload, 0x33),
+                        ReadFloat(payload, 0x37),
+                        ReadFloat(payload, 0x3c)
+                    );
                 case SlippiCommand.POST_FRAME_UPDATE:
                     var postFramePlayerIndex = payload[0x5];
                     if (!_playerIndex.Contains(postFramePlayerIndex))
                     {
                         break;
                     }
-                    var percent = ReadFloat(payload, 0x16);
-                    //Console.WriteLine(percent);
-                    var stocksRemaining = ReadUInt8(payload, 0x21);
-                    var isAirborne = ReadBool(payload, 0x2f);
-                    var lCancelStatus = ReadUInt8(payload, 0x33);
-                    break;
+
+                    return new PostFrameUpdateCommand(
+                        ReadInt(payload, 0x1),
+                        ReadUInt8(payload, 0x5),
+                        ReadBool(payload, 0x6),
+                        ReadUInt8(payload, 0x7),
+                        ReadUShort(payload, 0x8),
+                        ReadFloat(payload, 0xa),
+                        ReadFloat(payload, 0xe),
+                        ReadFloat(payload, 0x12),
+                        ReadFloat(payload, 0x16),
+                        ReadFloat(payload, 0x1a),
+                        ReadUInt8(payload, 0x1e),
+                        ReadUInt8(payload, 0x1f),
+                        ReadUInt8(payload, 0x20),
+                        ReadUInt8(payload, 0x21),
+                        ReadFloat(payload, 0x2b),
+                        ReadBool(payload, 0x2f),
+                        ReadUShort(payload, 0x30),
+                        ReadUInt8(payload, 0x32),
+                        ReadUInt8(payload, 0x33),
+                        ReadUInt8(payload, 0x34)
+                    );
                 case SlippiCommand.GAME_END:
                     _gameHasEnded = true;
                     break;
+                    return new SlippiGameEndCommand(ReadUInt8(payload, 0x1), ReadInt8(payload, 0x2));
                 case SlippiCommand.ITEM_UPDATE:
                     break;
                 case SlippiCommand.FRAME_BOOKEND:
-                    break;
+                    return new FrameBookedCommand(
+                        ReadInt(payload, 0x1),
+                        ReadInt(payload, 0x5));
                 case SlippiCommand.MESSAGE_SIZES:
                     break;
             }
+
+            return null;
         }
 
         /// <summary>
@@ -216,7 +238,12 @@ namespace SlippiNET.Utils
             return ConvertToHalfWidth(resultString);
         }
 
-        private static sbyte ReadUInt8(byte[] payload, int startIndex)
+        private static byte ReadUInt8(byte[] payload, int startIndex)
+        {
+            return (byte)BitConverter.ToChar(payload, startIndex);
+        }
+
+        private static sbyte ReadInt8(byte[] payload, int startIndex)
         {
             return (sbyte)BitConverter.ToChar(payload, startIndex);
         }
@@ -236,6 +263,18 @@ namespace SlippiNET.Utils
         {
             var endIndex = startIndex + 2;
             return BinaryPrimitives.ReadUInt16BigEndian(payload[startIndex..endIndex]);
+        }
+
+        private static int ReadInt(byte[] payload, int startIndex)
+        {
+            var endIndex = startIndex + 4;
+            return BinaryPrimitives.ReadInt32BigEndian(payload[startIndex..endIndex]);
+        }
+
+        private static uint ReadUInt(byte[] payload, int startIndex)
+        {
+            var endIndex = startIndex + 4;
+            return BinaryPrimitives.ReadUInt32BigEndian(payload[startIndex..endIndex]);
         }
     }
 }
