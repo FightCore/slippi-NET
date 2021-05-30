@@ -11,8 +11,8 @@ namespace SlippiNET.Utils
         {
             var rawDataPosition = GetRawDataPosition(stream);
             var rawDataLength = GetRawDataLength(stream, rawDataPosition);
-            var metadataPosition = rawDataPosition + rawDataLength + 10; // remove metadata string
-            var metadataLength = stream.Length - metadataPosition - 1;
+            var metadataPosition = rawDataPosition + rawDataLength + 10 <= stream.Length ?  rawDataPosition + rawDataLength + 10 : -1; // remove metadata string
+            var metadataLength = metadataPosition == -1 ? -1 : stream.Length - metadataPosition - 1;
             var messageSizes = GetMessageSizes(stream, rawDataPosition);
 
             return new SlippiFileType(rawDataPosition, rawDataLength, metadataPosition, metadataLength, messageSizes);

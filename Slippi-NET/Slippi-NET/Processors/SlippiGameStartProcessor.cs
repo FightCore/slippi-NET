@@ -55,14 +55,15 @@ namespace SlippiNET.Processors
                     //_playerIndex.Add(i);
                 }
             }
+
             return new SlippiGameInformation(
                 $"{ReadUInt8(payload, 0x1)}.{ReadUInt8(payload, 0x2)}.{ReadUInt8(payload, 0x3)}",
                 ReadBool(payload, 0xd),
                 ReadBool(payload, 0x1a1),
                 (MeleeStage)ReadUShort(payload, 0x13),
                 players,
-                payload[0x1a3],
-                (MeleeMajorScene)payload[0x1a4]
+                ReadUInt8(payload, 0x1a3),
+                (MeleeMajorScene)ReadUInt8(payload, 0x1a4)
             );
         }
     }

@@ -46,6 +46,7 @@ namespace SlippiNET.Utils
                 // TODO Replace with custom exception.
                 if (!fileType.messageSizes.ContainsKey(commandByte))
                 {
+                    Console.WriteLine("WARN: CommandByte not found.");
                     throw new Exception();
                 }
 

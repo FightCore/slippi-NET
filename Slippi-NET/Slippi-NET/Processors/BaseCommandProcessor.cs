@@ -61,8 +61,14 @@ namespace SlippiNET.Processors
 
         protected static string ReadString(byte[] payload, int startIndex, int length)
         {
-            var end = startIndex + length;
-            var buffer = payload[startIndex..end];
+            var endIndex = startIndex + length;
+
+            if (startIndex >= payload.Length || endIndex > payload.Length)
+            {
+                return null;
+            }
+            
+            var buffer = payload[startIndex..endIndex];
             var resultString = SlippiConstants.Encoding.GetString(buffer);
             if (string.IsNullOrWhiteSpace(resultString))
             {
@@ -74,40 +80,69 @@ namespace SlippiNET.Processors
 
         protected static byte ReadUInt8(byte[] payload, int startIndex)
         {
-            return (byte)BitConverter.ToChar(payload, startIndex);
+            if (startIndex >= payload.Length)
+            {
+                return default;
+            }
+
+            return payload[startIndex];
         }
 
         protected static sbyte ReadInt8(byte[] payload, int startIndex)
         {
+            if (startIndex >= payload.Length || startIndex + 1 > payload.Length)
+            {
+                return default;
+            }
             return (sbyte)BitConverter.ToChar(payload, startIndex);
         }
 
         protected static bool ReadBool(byte[] payload, int startIndex)
         {
+            if (startIndex >= payload.Length)
+            {
+                return default;
+            }
             return BitConverter.ToBoolean(payload, startIndex);
         }
 
         protected static float ReadFloat(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 4;
+            if (endIndex >= payload.Length)
+            {
+                return default;
+            }
             return BinaryPrimitives.ReadSingleBigEndian(payload.AsSpan(startIndex..endIndex));
         }
 
         protected static ushort ReadUShort(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 2;
+            if (startIndex >= payload.Length || endIndex > payload.Length)
+            {
+                return default;
+            }
             return BinaryPrimitives.ReadUInt16BigEndian(payload.AsSpan(startIndex..endIndex));
         }
 
         protected static int ReadInt(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 4;
+            if (startIndex >= payload.Length || endIndex > payload.Length)
+            {
+                return default;
+            }
             return BinaryPrimitives.ReadInt32BigEndian(payload.AsSpan(startIndex..endIndex));
         }
 
         protected static uint ReadUInt(byte[] payload, int startIndex)
         {
             var endIndex = startIndex + 4;
+            if (startIndex >= payload.Length || endIndex > payload.Length)
+            {
+                return default;
+            }
             return BinaryPrimitives.ReadUInt32BigEndian(payload.AsSpan(startIndex..endIndex));
         }
     }
