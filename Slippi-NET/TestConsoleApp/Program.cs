@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SlippiNET.Analysers;
 using SlippiNET.Models.Commands;
 using SlippiNET.Utils;
 
@@ -36,71 +37,28 @@ namespace TestConsoleApp
 			{
 				try
 				{
-					// Open the file read
-					var binaryFile = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-					// Get the file type that includes all the message sizes and data locations.
-					var fileType = new SlippiTypeFileReader().GetFileType(binaryFile);
-
-					if (fileType.MetadataPosition == -1)
-					{
-						Console.WriteLine("No meta data available");
-						continue;
-					}
-					var metaData = new SlippiMetaDataReader().Read(binaryFile, fileType);
-
-					var selfIndex = metaData.Players[0].Names["code"] == self ? 0 : 1;
-					var opponentIndex = selfIndex == 0 ? 1 : 0;
-
 					// Read all the commands from the file.
-					var commands = new SlippiFileReader().Read(binaryFile, fileType);
-					var commandsAsList = commands.ToList();
-					var selfLastFrame =
-						commandsAsList.Last(command => command is SlippiPostFrameUpdateCommand postFrameUpdateCommand && postFrameUpdateCommand.PlayerIndex == selfIndex) as
-							SlippiPostFrameUpdateCommand;
-					var opponentLastFrame =
-						commandsAsList.Last(command => command is SlippiPostFrameUpdateCommand postFrameUpdateCommand && postFrameUpdateCommand.PlayerIndex == opponentIndex) as
-							SlippiPostFrameUpdateCommand;
-
-					var won = selfLastFrame.StocksRemaining > opponentLastFrame.StocksRemaining;
-
-
-					if (selfLastFrame.StocksRemaining == opponentLastFrame.StocksRemaining)
+					var game = new SlippiGame(file, self);
+					game.Analyse();
+					var analysisInput = game.AnalysisInput;
+					if (!records.ContainsKey(analysisInput.OpponentCode))
 					{
-						if (selfLastFrame.StocksRemaining != 1 || opponentLastFrame.StocksRemaining != 1)
-						{
-							Console.WriteLine("Game didn't end on one stock, most likely laggy quit.");
-						}
-
-						var gameEndCommand =
-							commandsAsList.First(command => command is SlippiGameEndCommand) as SlippiGameEndCommand;
-						if (gameEndCommand.LRASInitiator == -1)
-						{
-							Console.WriteLine("Game ended equal without LRAS indication, doesn't count.");
-						}
-						won = gameEndCommand.LRASInitiator != selfIndex;
+						records.Add(analysisInput.OpponentCode, (0, 0));
 					}
 
-
-					var opponentCode = metaData.Players[opponentIndex].Names["code"];
-
-					if (!records.ContainsKey(opponentCode))
+					if (game.Won(self))
 					{
-						records.Add(opponentCode, (0, 0));
-					}
-
-					if (won)
-					{
-						var record = records[opponentCode];
+						var record = records[analysisInput.OpponentCode];
 						record.Won++;
-						records[opponentCode] = record;
-						Console.WriteLine("Playing {0} Won against {1} as {2}", metaData.Players[selfIndex].Characters.First().Key, metaData.Players[opponentIndex].Names["code"], metaData.Players[opponentIndex].Characters.First().Key);
+						records[analysisInput.OpponentCode] = record;
+						Console.WriteLine("{0} won against {1}", self, analysisInput.OpponentCode);
 					}
 					else
 					{
-						var record = records[opponentCode];
+						var record = records[analysisInput.OpponentCode];
 						record.Lost++;
-						records[opponentCode] = record;
-						Console.WriteLine("Playing {0} Lost against {1} as {2}", metaData.Players[selfIndex].Characters.First().Key, metaData.Players[opponentIndex].Names["code"], metaData.Players[opponentIndex].Characters.First().Key);
+						records[analysisInput.OpponentCode] = record;
+						Console.WriteLine("{0} lost against {1}", self, analysisInput.OpponentCode);
 					}
 
 

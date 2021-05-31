@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Slippi-NET.Analysers\Slippi-NET.Analysers.csproj" />
     <ProjectReference Include="..\Slippi-NET\Slippi-NET.csproj" />
   </ItemGroup>
 
