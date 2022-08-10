@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
-using SlippiNET.Analysers;
-using SlippiNET.Models.Commands;
+using SlippiNET.Analyzers;
 using SlippiNET.Utils;
 
 namespace TestConsoleApp
@@ -39,27 +37,29 @@ namespace TestConsoleApp
 				{
 					// Read all the commands from the file.
 					var game = new SlippiGame(file, self);
-					game.Analyse();
+					game.Analyze();
 					var analysisInput = game.AnalysisInput;
 					if (!records.ContainsKey(analysisInput.OpponentCode))
 					{
 						records.Add(analysisInput.OpponentCode, (0, 0));
 					}
 
-					if (game.Won(self))
-					{
-						var record = records[analysisInput.OpponentCode];
-						record.Won++;
-						records[analysisInput.OpponentCode] = record;
-						Console.WriteLine("{0} won against {1}", self, analysisInput.OpponentCode);
-					}
-					else
-					{
-						var record = records[analysisInput.OpponentCode];
-						record.Lost++;
-						records[analysisInput.OpponentCode] = record;
-						Console.WriteLine("{0} lost against {1}", self, analysisInput.OpponentCode);
-					}
+					Console.WriteLine("LCancel percentage: {0}", game.Performance.LCancel.LCancelPercentage);
+
+					//if (game.Won(self))
+					//{
+					//	var record = records[analysisInput.OpponentCode];
+					//	record.Won++;
+					//	records[analysisInput.OpponentCode] = record;
+					//	Console.WriteLine("{0} won against {1}", self, analysisInput.OpponentCode);
+					//}
+					//else
+					//{
+					//	var record = records[analysisInput.OpponentCode];
+					//	record.Lost++;
+					//	records[analysisInput.OpponentCode] = record;
+					//	Console.WriteLine("{0} lost against {1}", self, analysisInput.OpponentCode);
+					//}
 
 
 				}

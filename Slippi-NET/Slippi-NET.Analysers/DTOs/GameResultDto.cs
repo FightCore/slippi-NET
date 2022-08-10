@@ -1,4 +1,4 @@
-﻿namespace SlippiNET.Analysers.DTOs
+﻿namespace SlippiNET.Analyzers.DTOs
 {
 	public class GameResultDto
 	{

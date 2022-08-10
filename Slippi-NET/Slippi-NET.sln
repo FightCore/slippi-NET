@@ -13,9 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{DFAB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{48FFA86B-958B-497F-A900-8539FCAFE441}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsoleApp", "TestConsoleApp\TestConsoleApp.csproj", "{296DAE06-20C8-43F7-A90B-8363D3546089}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsoleApp", "TestConsoleApp\TestConsoleApp.csproj", "{296DAE06-20C8-43F7-A90B-8363D3546089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Slippi-NET.Analysers", "Slippi-NET.Analysers\Slippi-NET.Analysers.csproj", "{CB03AC03-D178-4CA5-A6DA-673A38358331}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Slippi-NET.Analyzers", "Slippi-NET.Analysers\Slippi-NET.Analyzers.csproj", "{CB03AC03-D178-4CA5-A6DA-673A38358331}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

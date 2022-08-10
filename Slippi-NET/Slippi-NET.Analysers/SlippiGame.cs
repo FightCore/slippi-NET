@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using SlippiNET.Analysers.DTOs;
+using SlippiNET.Analyzers.Analyzers;
+using SlippiNET.Analyzers.Analyzers.Performance;
+using SlippiNET.Analyzers.DTOs;
+using SlippiNET.Analyzers.DTOs.Performance;
 using SlippiNET.Models.Commands;
 using SlippiNET.Utils;
 
-namespace SlippiNET.Analysers
+namespace SlippiNET.Analyzers
 {
 	public class SlippiGame
 	{
@@ -18,6 +20,8 @@ namespace SlippiNET.Analysers
 
 		public AnalysisInputDto AnalysisInput { get; set; }
 
+		public PerformanceDto Performance { get; set; }
+
 		public SlippiGame(string filePath, string playerCode)
 		{
 			_filePath = filePath;
@@ -27,7 +31,7 @@ namespace SlippiNET.Analysers
 			};
 		}
 
-		public void Analyse()
+		public void Analyze()
 		{
 			// Open the file read
 			var binaryFile = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -39,66 +43,29 @@ namespace SlippiNET.Analysers
 				throw new Exception("No meta data available");
 			}
 			var metaData = new SlippiMetaDataReader().Read(binaryFile, fileType);
-
+			
+			// Check which index the player is playing under by going over the players names and searching for "code" 
 			AnalysisInput.PlayerIndex = metaData.Players[0].Names["code"] == AnalysisInput.PlayerCode ? 0 : 1;
+			// Set the opponent index as the opposite of the player index.
+			// TODO Improve this for other port usage and doubles
 			AnalysisInput.OpponentIndex = AnalysisInput.PlayerIndex == 0 ? 1 : 0;
+			// Set the code of the opponent using the previously found index.
 			AnalysisInput.OpponentCode = metaData.Players[AnalysisInput.OpponentIndex].Names["code"];
 
+			// Get the commands enumerable from the slippi file.
 			var commands = new SlippiFileReader().Read(binaryFile, fileType);
-			var commandsAsList = commands.ToList();
-			var selfLastFrame =
-				commandsAsList.Last(command => command is SlippiPostFrameUpdateCommand postFrameUpdateCommand
-											   && postFrameUpdateCommand.PlayerIndex == AnalysisInput.PlayerIndex) as
-					SlippiPostFrameUpdateCommand;
-			var opponentLastFrame =
-				commandsAsList.Last(command => command is SlippiPostFrameUpdateCommand postFrameUpdateCommand
-											   && postFrameUpdateCommand.PlayerIndex == AnalysisInput.OpponentIndex) as
-					SlippiPostFrameUpdateCommand;
 
-			var won = selfLastFrame.StocksRemaining > opponentLastFrame.StocksRemaining;
-
-
-			if (selfLastFrame.StocksRemaining != opponentLastFrame.StocksRemaining)
-			{
-				GameResult = new GameResultDto()
-				{
-					IsLRAStart = false,
-					WasTimeout = false,
-					WinnerCode = won ? AnalysisInput.PlayerCode : AnalysisInput.OpponentCode
-				};
-				return;
-			}
-
-			if (selfLastFrame.StocksRemaining != 1 && opponentLastFrame.StocksRemaining != 1)
-			{
-				Console.WriteLine("Game didn't end on one stock, most likely laggy quit.");
-			}
-
-			var gameEndCommand =
-					commandsAsList.First(command => command is SlippiGameEndCommand) as SlippiGameEndCommand;
-			if (gameEndCommand == null || gameEndCommand.LRASInitiator == -1)
-			{
-				throw new Exception("Game ended equal without LRAS indication, doesn't count.");
-			}
-
-			GameResult = new GameResultDto()
-			{
-				IsLRAStart = true,
-				LRAStartInitiator = gameEndCommand.LRASInitiator == AnalysisInput.PlayerIndex
-					? AnalysisInput.PlayerCode
-					: AnalysisInput.OpponentCode,
-				WinnerCode = gameEndCommand.LRASInitiator != AnalysisInput.PlayerIndex
-					? AnalysisInput.PlayerCode
-					: AnalysisInput.OpponentCode,
-			};
+			// Convert it to a list as we will need to iterate the file multiple times.
+			_commandList = commands.ToList();
+			GameResult = new GameEndAnalyzer().Analyze(_commandList, AnalysisInput);
+			Performance = new PerformanceAnalyzer().Analyze(_commandList, AnalysisInput);
 		}
-
 
 		public bool Won(string code)
 		{
 			if (GameResult == null)
 			{
-				Analyse();
+				Analyze();
 			}
 
 			return GameResult.WinnerCode == code;
